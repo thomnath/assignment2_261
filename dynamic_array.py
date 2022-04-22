@@ -219,40 +219,124 @@ class DynamicArray:
 
     def merge(self, second_da: "DynamicArray") -> None:
         """
-        TODO: Write this implementation
+        Appends all elements of the given array to an existing array
+
+        :param second_da: a given dynamic array, all elements of which are to be appended to the existing array
+
+        :returns: Nothing; modifies existing array in place
         """
-        pass
+        # Resize existing array if the capacity is insufficient
+        if self._size + second_da._size > self._capacity:
+            self.resize(self._capacity * 2)
+        for num in range(second_da._size):
+            self.append(second_da[num])
 
     def map(self, map_func) -> "DynamicArray":
         """
-        TODO: Write this implementation
+        Returns a new array, each element of which is equal to the given function apply to the current array element
+
+        :param map_func: a regular or Lambda function to be applied to each element of the array
+
+        :returns: A new Dynamic Array, new_arr, that contains each element of the current array to which the function
+        has been applied
         """
-        pass
+        # Create the new array, then change its capacity to that of the current array
+        new_arr = DynamicArray()
+        new_arr.resize(self._capacity)
+        for num in range(self._size):
+            new_arr.append(map_func(self._data[num]))
+        return new_arr
 
     def filter(self, filter_func) -> "DynamicArray":
         """
-        TODO: Write this implementation
+        Creates a new Dynamic Array that contains only elements from the original array that meet filter criteria
+
+        :param filter_func: A function that acts as a conditional for appending a given element to the new array
+
+        :returns: new_arr, a Dynamic Array with only elements from current array that meet filter criteria
         """
-        pass
+        new_arr = DynamicArray()
+        new_arr.resize(self._capacity)
+        for num in range(self._size):
+            if filter_func(self._data[num]) == True:
+                new_arr.append(self._data[num])
+        # If our new array uses less than half the capacity, resize it
+        while new_arr._size <= new_arr._capacity/2 and new_arr._capacity > 4:
+            new_arr.resize(int(new_arr._capacity/2))
+        return new_arr
 
     def reduce(self, reduce_func, initializer=None) -> object:
         """
-        TODO: Write this implementation
+        Supplies the value of each element in the array to a given function, then returns the result of the function.
+        The function is either initialized with a given value or with the first value of the array.
+
+        :param reduce_func: The function to be supplied with array values
+
+        :param initializer: if not None, the value intially supplied to the function along with an array value
+
+        :returns: the final value of after supplying each array value to the function
         """
-        pass
+        if self._size == 0:
+            return initializer
+        # Keep track of the value that we start with
+        if initializer != None:
+            x = initializer
+            for num in range(self._size):
+                x = reduce_func(x, self._data[num])
+        else:
+            x = self._data[0]
+        #x = reduce_func(x, self._data[0])
+            for num in range(self._size-1):
+                x = reduce_func(x, self._data[num+1])
+        return x
 
 
 def find_mode(arr: DynamicArray) -> (DynamicArray, int):
     """
-    TODO: Write this implementation
+    Finds the most frequently-occurring element in a sorted Dynamic Array and the number of times it occurs.
+
+    :param arr: a sorted dynamic array
+
+    :returns: tuple of ([dynamic array of mode value(s)], frequency)
     """
-    pass
+    size = arr.length()
+    mode_arr = DynamicArray()
+    if size == 1:
+        return arr, 1
+    max, num = 1, 1
+    count = 1
+    # Loop through once to find the maximum frequency of any value
+    while num < size:
+        if arr.get_at_index(num) == arr.get_at_index(num-1):
+            count += 1
+            num += 1
+            if count > max:
+                max = count
+        else:
+            num += 1
+            count = 1
+    # Reset counters and loop through a second time to append each value to the mode array if its frequency == max freq
+    num = 1
+    count = 1
+    if max == 1:
+        for num in range(size):
+            mode_arr.append(arr.get_at_index(num))
+    while num < size:
+        if arr.get_at_index(num) == arr.get_at_index(num-1):
+            count += 1
+            num += 1
+            if count == max:
+                mode_arr.append(arr.get_at_index(num-1))
+        else:
+            num += 1
+            count = 1
+    return mode_arr, max
 
 # ------------------- BASIC TESTING -----------------------------------------
 
 
 if __name__ == "__main__":
-    '''
+
     print("\n# resize - example 1")
     da = DynamicArray()
 
@@ -378,7 +462,7 @@ if __name__ == "__main__":
     for _ in range(5):
         da.remove_at_index(0)
         print(da)
-    '''
+
     print("\n# slice example 1")
     da = DynamicArray([1, 2, 3, 4, 5, 6, 7, 8, 9])
     da_slice = da.slice(1, 3)
@@ -396,7 +480,7 @@ if __name__ == "__main__":
             print(" --- OK: ", da.slice(i, cnt))
         except:
             print(" --- exception occurred.")
-    '''
+
     print("\n# merge example 1")
     da = DynamicArray([1, 2, 3, 4, 5])
     da2 = DynamicArray([10, 11, 12, 13])
@@ -485,6 +569,7 @@ if __name__ == "__main__":
 
     print("\n# find_mode - example 1")
     test_cases = (
+        [54],
         [1, 1, 2, 3, 3, 4],
         [1, 2, 3, 4, 5],
         ["Apple", "Banana", "Banana", "Carrot", "Carrot",
@@ -503,4 +588,3 @@ if __name__ == "__main__":
         da.append(case[x])
         mode, frequency = find_mode(da)
         print(f"{da}\nMode: {mode}, Frequency: {frequency}")
-    '''
